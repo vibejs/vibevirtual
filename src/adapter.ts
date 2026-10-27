@@ -2,7 +2,6 @@ import {
   computed,
   getCurrentScope,
   markRaw,
-  nextTick,
   onScopeDispose,
   shallowRef,
   watch,
@@ -24,6 +23,8 @@ export function createAdapter<
 
   const revision = shallowRef(0);
   const positionRevision = shallowRef(0);
+  const commitRevision = shallowRef(0);
+  let commitVersion = 0;
   const pending = new Set<TItemElement>();
   let disposed = false;
   let scheduled = false;
@@ -63,9 +64,15 @@ export function createAdapter<
   function scheduleCommit(): void {
     if (scheduled || disposed) return;
     scheduled = true;
-    void nextTick(() => {
+    // A post watcher belongs to the same flush as options and DOM updates,
+    // so the viewport is attached before consumers resume from nextTick.
+    commitRevision.value = ++commitVersion;
+  }
+
+  const stopCommit = watch(
+    commitRevision,
+    () => {
       scheduled = false;
-      if (disposed) return;
       if (reconnect) {
         reconnect = false;
         cleanup();
@@ -77,8 +84,9 @@ export function createAdapter<
         if (element.isConnected && virtualizer.options.enabled) virtualizer.measureElement(element);
       }
       pending.clear();
-    });
-  }
+    },
+    { flush: 'post' },
+  );
 
   function changed(instance: Virtualizer<TScrollElement, TItemElement>, sync: boolean): void {
     if (disposed) return;
@@ -119,6 +127,7 @@ export function createAdapter<
     disposed = true;
     stopOptions!();
     stopOptions = null;
+    stopCommit();
     pending.clear();
     cleanup();
     virtualizer.elementsCache.clear();

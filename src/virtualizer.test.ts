@@ -103,6 +103,25 @@ describe('native reactive bridge', () => {
     stopped.stop();
     expect(stopped.active).toBe(false);
   });
+  it('attaches before the first nextTick so initial scroll commands reach the viewport', async () => {
+    const scrollToFn = vi.fn<() => void>();
+    const h = harness({ scrollToFn });
+    h.target.value = element();
+    await nextTick();
+    expect(h.v.virtualizer.scrollElement).toBe(h.target.value);
+    expect(h.v.virtualItems.value.length).toBeGreaterThan(0);
+    h.v.virtualizer.scrollToIndex(50, { align: 'start' });
+    expect(scrollToFn).toHaveBeenCalledWith(1000, expect.anything(), h.v.virtualizer);
+  });
+  it('cancels the initial commit when its scope stops before the first flush', async () => {
+    const h = harness();
+    h.target.value = element();
+    h.scope.stop();
+    await nextTick();
+    expect(h.v.virtualizer.scrollElement).toBeNull();
+    expect(h.disconnectRect).not.toHaveBeenCalled();
+    expect(h.disconnectOffset).not.toHaveBeenCalled();
+  });
   it('creates once without an element, attaches, replaces, disappears, and disposes', async () => {
     const h = harness();
     const engine = h.v.virtualizer;
