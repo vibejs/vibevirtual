@@ -29,6 +29,7 @@ export function createAdapter<
   let disposed = false;
   let scheduled = false;
   let reconnect = false;
+  let resetOffset = false;
 
   // Watch callbacks run untracked: engine reads must not subscribe the options watcher
   // to its own invalidation signal or to unrelated consumer effects.
@@ -43,14 +44,32 @@ export function createAdapter<
   };
   const initial = read();
   let observeOffset = initial.observeElementOffset;
-  const observeElementOffset: typeof observeOffset = (instance, callback) =>
-    observeOffset(instance, (offset, scrolling) => {
+  const observeElementOffset: typeof observeOffset = (instance, callback) => {
+    const notify = (offset: number, scrolling: boolean) => {
       if (disposed) return;
       callback(offset, scrolling);
       // Core only calls onChange when its range/scrolling state changes. Piggyback
       // on its existing observer for precise offset/end-state, without another listener.
       positionRevision.value += 1;
-    });
+    };
+    if (resetOffset) {
+      resetOffset = false;
+      // A new axis has its own native offset. Seed Core through its observer
+      // callback before it synchronizes the viewport, preserving mount seeds.
+      const element = instance.scrollElement!;
+      const { horizontal, isRtl } = instance.options;
+      const offset =
+        'scrollY' in element
+          ? horizontal
+            ? element.scrollX
+            : element.scrollY
+          : horizontal
+            ? element.scrollLeft * (isRtl ? -1 : 1)
+            : element.scrollTop;
+      notify(offset, false);
+    }
+    return observeOffset(instance, notify);
+  };
   const virtualizer = markRaw(
     new Virtualizer<TScrollElement, TItemElement>({
       ...initial,
@@ -97,12 +116,14 @@ export function createAdapter<
 
   let stopOptions: WatchHandle | null = watch(read, (options) => {
     const previous = virtualizer.options;
+    const orientationChanged = !!options.horizontal !== previous.horizontal;
+    resetOffset ||= orientationChanged && virtualizer.scrollElement !== null;
     reconnect ||=
+      orientationChanged ||
       options.observeElementOffset !== observeOffset ||
       options.observeElementRect !== previous.observeElementRect ||
       (options.useScrollendEvent ?? false) !== previous.useScrollendEvent ||
       (options.isScrollingResetDelay ?? 150) !== previous.isScrollingResetDelay;
-    const orientationChanged = !!options.horizontal !== previous.horizontal;
     observeOffset = options.observeElementOffset;
     onChange = options.onChange;
     virtualizer.setOptions({ ...options, observeElementOffset, onChange: changed });

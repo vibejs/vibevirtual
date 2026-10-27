@@ -210,6 +210,38 @@ describe('native reactive bridge', () => {
     h.offset(4, false);
     expect(h.v.isScrolling.value).toBe(false);
   });
+  it.each([false, true])(
+    'reads native axis offsets through orientation changes (RTL: %s)',
+    async (isRtl) => {
+      const node = element();
+      const horizontal = ref(false);
+      const { value: v } = scoped(() =>
+        useVirtualizer(() => ({
+          count: 100,
+          getScrollElement: () => node,
+          estimateSize: () => 20,
+          horizontal: horizontal.value,
+          isRtl,
+        })),
+      );
+      await nextTick();
+      node.scrollTop = 1000;
+      node.scrollLeft = isRtl ? -240 : 240;
+      node.dispatchEvent(new Event('scroll'));
+      await nextTick();
+      expect(v.scrollOffset.value).toBe(1000);
+      horizontal.value = true;
+      await nextTick();
+      expect(v.scrollOffset.value).toBe(240);
+      expect(v.range.value?.startIndex).toBe(12);
+      expect(v.virtualItems.value.some((item) => item.index === 12)).toBe(true);
+      horizontal.value = false;
+      await nextTick();
+      expect(v.scrollOffset.value).toBe(1000);
+      expect(v.range.value?.startIndex).toBe(50);
+      expect(v.virtualItems.value.some((item) => item.index === 50)).toBe(true);
+    },
+  );
   it('supports ref/computed options and callback replacement without feedback', async () => {
     const node = element();
     const changed = vi.fn<() => void>();
@@ -401,6 +433,27 @@ describe('window defaults', () => {
     await flush();
     expect(v.virtualizer.scrollElement).toBeNull();
     expect(v.scrollOffset.value).toBe(0);
+  });
+  it('preserves native window offsets when switching axes', async () => {
+    vi.stubGlobal('scrollTo', vi.fn<() => void>());
+    vi.stubGlobal('scrollY', 1000);
+    vi.stubGlobal('scrollX', 240);
+    const horizontal = ref(false);
+    const { value: v } = scoped(() =>
+      useWindowVirtualizer(() => ({
+        count: 100,
+        estimateSize: () => 20,
+        horizontal: horizontal.value,
+      })),
+    );
+    await nextTick();
+    expect(v.scrollOffset.value).toBe(1000);
+    horizontal.value = true;
+    await nextTick();
+    expect(v.scrollOffset.value).toBe(240);
+    horizontal.value = false;
+    await nextTick();
+    expect(v.scrollOffset.value).toBe(1000);
   });
 });
 

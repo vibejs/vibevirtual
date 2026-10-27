@@ -14,6 +14,8 @@
 
 Pass a plain options object, a ref/computed of the whole options object, or a getter returning it. Read reactive scalar values in that getter: count, overscan, horizontal, enabled, gap, lanes and padding. The adapter also tracks reads inside getScrollElement.
 
+Changing horizontal reconnects the axis observers and reads the new axis's current native scroll position. Switching axes does not reuse the previous axis's offset or reapply initialOffset.
+
 Callbacks remain callbacks. An estimateSize closure that reads a reactive row-height value does not itself cause Core to invalidate cached coordinates. After changing the estimation policy or known responsive size model, call `virtualizer.measure()` from a post-flush watch. Dynamic mounted elements normally remeasure through ResizeObserver automatically.
 
 For collection changes, read the array in the options getter and close getItemKey over that snapshot. A stable callback reading a mutable array behind Core's back can leave memoized identity mappings stale. Do not mutate previously captured arrays in place; replace the array reference.
