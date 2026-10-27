@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useTemplateRef } from '@usevibejs/ui';
+import { computed, nextTick, ref, useTemplateRef } from '@usevibejs/ui';
 import { useVirtualizer } from '@usevibejs/virtual';
 import Metrics from './Metrics.vibe';
 import Button from './components/ui/Button.vibe';
@@ -8,11 +8,12 @@ const rtl = ref(false); const expanded = ref(-1);
 const v = useVirtualizer<HTMLDivElement, HTMLElement>(() => ({ count: 20_000, getScrollElement: () => scroll.value, estimateSize: () => 220, horizontal: true, isRtl: rtl.value, overscan: 3, gap: 16, paddingStart: 16, paddingEnd: 16 }));
 const items = v.virtualItems; const size = v.totalSize; const offset = v.scrollOffset; const scrolling = v.isScrolling;
 const measured = computed(() => { void items.value; return v.virtualizer.itemSizeCache.size; });
+async function toggleDirection() { rtl.value = !rtl.value; await nextTick(); v.virtualizer.scrollToOffset(0); }
 function key(event: KeyboardEvent) { if (event.target === scroll.value && (event.key === 'ArrowRight' || event.key === 'ArrowLeft')) { event.preventDefault(); v.virtualizer.scrollBy((event.key === 'ArrowRight' ? 1 : -1) * (rtl.value ? -1 : 1) * 240); } }
 </script>
 <template>
   <div class="demo-layout"><section class="experiment">
-    <div class="toolbar"><Button size="sm" variant="outline" @click="v.virtualizer.scrollToIndex(10000, { align: 'start' })">Go to event 10,000</Button><Button size="sm" variant="outline" @click="rtl = !rtl; v.virtualizer.scrollToOffset(0)">{{ rtl ? 'Use LTR' : 'Use RTL' }}</Button><Button size="sm" variant="outline" @click="v.virtualizer.scrollToEnd({ behavior: 'smooth' })">Smooth to end</Button><Button size="sm" variant="outline" @click="v.virtualizer.cancelScroll()">Cancel scroll</Button></div>
+    <div class="toolbar"><Button size="sm" variant="outline" @click="v.virtualizer.scrollToIndex(10000, { align: 'start' })">Go to event 10,000</Button><Button size="sm" variant="outline" @click="toggleDirection">{{ rtl ? 'Use LTR' : 'Use RTL' }}</Button><Button size="sm" variant="outline" @click="v.virtualizer.scrollToEnd({ behavior: 'smooth' })">Smooth to end</Button><Button size="sm" variant="outline" @click="v.virtualizer.cancelScroll()">Cancel scroll</Button></div>
     <div ref="scroll" class="viewport timeline-viewport" data-testid="horizontal" tabindex="0" aria-label="Horizontal timeline. Use left and right arrow keys." :dir="rtl ? 'rtl' : 'ltr'" @keydown="key">
       <div class="sizer" :style="{ width: `${size}px`, height: '360px' }">
         <article v-for="item in items" :key="String(item.key)" :ref="v.measureElement" :data-index="item.index" class="timeline-event" :style="{ position: 'absolute', top: '30px', [rtl ? 'right' : 'left']: 0, width: expanded === item.index ? '340px' : `${200 + item.index % 3 * 20}px`, transform: `translateX(${(rtl ? -1 : 1) * item.start}px)` }">

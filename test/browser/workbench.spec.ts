@@ -139,10 +139,13 @@ test('horizontal measured widths, RTL normalization, smooth scroll cancellation'
   const card = viewport.locator('[data-index="0"]');
   await card.getByRole('button', { name: 'Widen event' }).click();
   await expect.poll(async () => (await card.boundingBox())!.width).toBe(340);
-  await page.getByRole('button', { name: 'Go to event 10,000' }).click();
-  await expect(viewport.locator('[data-index="10000"]')).toBeVisible();
-  await page.getByRole('button', { name: 'Use RTL', exact: true }).click();
-  await expect(viewport.locator('[data-index="0"]')).toBeVisible();
+  for (const direction of ['RTL', 'LTR', 'RTL']) {
+    await page.getByRole('button', { name: 'Go to event 10,000' }).click();
+    await expect(viewport.locator('[data-index="10000"]')).toBeVisible();
+    await page.getByRole('button', { name: `Use ${direction}`, exact: true }).click();
+    await expect(viewport.locator('[data-index="0"]')).toBeVisible();
+    await expect.poll(() => viewport.evaluate((el) => Math.abs(el.scrollLeft))).toBeLessThan(1);
+  }
   await viewport.focus();
   await viewport.press('ArrowLeft');
   await expect.poll(() => viewport.evaluate((el) => el.scrollLeft)).toBeLessThan(-50);
