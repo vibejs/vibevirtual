@@ -43,6 +43,14 @@ export function createAdapter<
     };
   };
   const initial = read();
+  let observeRect = initial.observeElementRect;
+  const observeElementRect: typeof observeRect = (instance, callback) =>
+    observeRect(instance, (rect) => {
+      if (disposed) return;
+      callback(rect);
+      // Resizing can cross the end threshold without changing visible indexes.
+      positionRevision.value += 1;
+    });
   let observeOffset = initial.observeElementOffset;
   const observeElementOffset: typeof observeOffset = (instance, callback) => {
     const notify = (offset: number, scrolling: boolean) => {
@@ -73,6 +81,7 @@ export function createAdapter<
   const virtualizer = markRaw(
     new Virtualizer<TScrollElement, TItemElement>({
       ...initial,
+      observeElementRect,
       observeElementOffset,
       onChange: changed,
     }),
@@ -121,12 +130,18 @@ export function createAdapter<
     reconnect ||=
       orientationChanged ||
       options.observeElementOffset !== observeOffset ||
-      options.observeElementRect !== previous.observeElementRect ||
+      options.observeElementRect !== observeRect ||
       (options.useScrollendEvent ?? false) !== previous.useScrollendEvent ||
       (options.isScrollingResetDelay ?? 150) !== previous.isScrollingResetDelay;
+    observeRect = options.observeElementRect;
     observeOffset = options.observeElementOffset;
     onChange = options.onChange;
-    virtualizer.setOptions({ ...options, observeElementOffset, onChange: changed });
+    virtualizer.setOptions({
+      ...options,
+      observeElementRect,
+      observeElementOffset,
+      onChange: changed,
+    });
     if (orientationChanged) virtualizer.measure();
     revision.value += 1;
     scheduleCommit();

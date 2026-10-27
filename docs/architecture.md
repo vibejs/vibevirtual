@@ -11,7 +11,7 @@
 
 ## Reactive bridge
 
-One raw Core instance lives for the active scope. A small shallow revision signal invalidates computed views of Core's current data. Visible arrays are read directly from Core's memoized API, without copying them on each scroll. Precise offset/end state has a separate signal driven through Core's existing offset observer; scrolling inside the same range does not reconcile the list.
+One raw Core instance lives for the active scope. A small shallow revision signal invalidates computed views of Core's current data. Visible arrays are read directly from Core's memoized API, without copying them on each scroll. Precise offset/end state has a separate signal driven through Core's existing offset and viewport observers; scrolling or resizing inside the same range does not reconcile the list.
 
 An untracked watch callback applies shallow, getter-resolved options before Vibe renders. It does not deep-watch datasets. Core onChange invalidates state and forwards the current user callback. A coalesced post-flush watch calls the official `_willUpdate` adapter protocol after the sizer and keyed rows commit, before consumers resume from nextTick.
 

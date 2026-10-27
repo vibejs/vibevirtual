@@ -210,6 +210,41 @@ describe('native reactive bridge', () => {
     h.offset(4, false);
     expect(h.v.isScrolling.value).toBe(false);
   });
+  it('updates end state on viewport resize even when the virtual range stays unchanged', async () => {
+    let height = 100;
+    const node = document.createElement('div');
+    Object.defineProperties(node, {
+      clientWidth: { value: 200 },
+      clientHeight: { get: () => height },
+      scrollHeight: { value: 2000 },
+    });
+    node.scrollTo = vi.fn<() => void>();
+    document.body.append(node);
+    const h = harness({ scrollEndThreshold: 64 });
+    h.target.value = node;
+    await nextTick();
+    h.offset(1830, false);
+    await nextTick();
+    expect(h.v.range.value).toEqual({ startIndex: 91, endIndex: 96 });
+    expect(h.v.isAtEnd.value).toBe(false);
+    const items = h.v.virtualItems.value;
+    const changes = h.onChange.mock.calls.length;
+    height = 110;
+    h.rect(200, height);
+    await nextTick();
+    expect(h.v.range.value).toEqual({ startIndex: 91, endIndex: 96 });
+    expect(h.v.virtualItems.value).toBe(items);
+    expect(h.onChange).toHaveBeenCalledTimes(changes);
+    expect(h.v.isAtEnd.value).toBe(true);
+    height = 100;
+    h.rect(200, height);
+    await nextTick();
+    expect(h.v.isAtEnd.value).toBe(false);
+    const rect = h.v.virtualizer.scrollRect;
+    h.v.stop();
+    h.rect(200, 300);
+    expect(h.v.virtualizer.scrollRect).toBe(rect);
+  });
   it.each([false, true])(
     'reads native axis offsets through orientation changes (RTL: %s)',
     async (isRtl) => {
