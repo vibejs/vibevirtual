@@ -1,0 +1,54 @@
+<script setup lang="ts">
+import { computed, ref, useTemplateRef } from '@usevibejs/ui';
+import { tableFeatures, useTable, rowSortingFeature, globalFilteringFeature, columnFilteringFeature, columnSizingFeature, columnVisibilityFeature, rowSelectionFeature, createFilteredRowModel, createSortedRowModel, filterFn_includesString, sortFn_basic, sortFn_text } from '@usevibejs/table';
+import { defaultRangeExtractor, useVirtualGrid } from '@usevibejs/virtual';
+import Metrics from './Metrics.vibe';
+import Button from './components/ui/Button.vibe';
+import Input from './components/ui/Input.vibe';
+const scroll = useTemplateRef<HTMLDivElement>('scroll');
+const query = ref(''); const expanded = ref<string | null>(null);
+const focusedRow = ref<string | null>(null);
+const data = Array.from({ length: 100_000 }, (_, index) => ({ id: `record-${index}`, name: `Customer ${index}`, score: index % 997, region: ['Amsterdam', 'Istanbul', 'Tokyo', 'New York'][index % 4] }));
+const features = tableFeatures({ rowSortingFeature, globalFilteringFeature, columnFilteringFeature, columnSizingFeature, columnVisibilityFeature, rowSelectionFeature, filteredRowModel: createFilteredRowModel(), sortedRowModel: createSortedRowModel(), filterFns: { includesString: filterFn_includesString }, sortFns: { basic: sortFn_basic, text: sortFn_text } });
+const table = useTable({
+  features, data, getRowId: (row) => row.id,
+  columns: [
+    { accessorKey: 'name', header: 'Customer', size: 220, sortFn: 'text', filterFn: 'includesString' },
+    { accessorKey: 'score', header: 'Score', size: 120, sortFn: 'basic' },
+    { accessorKey: 'region', header: 'Region', size: 180 },
+    ...Array.from({ length: 37 }, (_, i) => ({ id: `metric-${i}`, header: `Metric ${i + 1}`, accessorFn: (row: typeof data[number]) => (row.score * (i + 1)) % 1000, size: 140 })),
+  ],
+});
+const model = computed(() => table.getRowModel().rows);
+const leafColumns = computed(() => table.getVisibleLeafColumns());
+const grid = useVirtualGrid<HTMLDivElement, HTMLDivElement>({ getScrollElement: () => scroll.value,
+  rows: () => { const current = model.value; const pinned = focusedRow.value === null ? -1 : current.findIndex((row) => row.id === focusedRow.value); return { rangeExtractor: (range) => pinned < 0 ? defaultRangeExtractor(range) : [...new Set([pinned, ...defaultRangeExtractor(range)])].sort((a, b) => a - b), count: current.length, estimateSize: () => 48, getItemKey: (index: number) => current[index].id, overscan: 5 }; },
+  columns: () => { const current = leafColumns.value; const pinned = focusedRow.value !== null; return { rangeExtractor: (range) => pinned ? [...new Set([0, ...defaultRangeExtractor(range)])].sort((a, b) => a - b) : defaultRangeExtractor(range), count: current.length, estimateSize: (index: number) => current[index].getSize(), getItemKey: (index: number) => current[index].id, overscan: 2 }; },
+});
+const rows = grid.rows.virtualItems; const columns = grid.columns.virtualItems; const height = grid.rows.totalSize; const width = grid.columns.totalSize;
+const offset = grid.rows.scrollOffset; const scrolling = grid.rows.isScrolling;
+const selected = computed(() => table.getSelectedRowIds().length);
+function focusout(event: FocusEvent) { if (!scroll.value?.contains(event.relatedTarget as Node | null)) focusedRow.value = null; }
+function search() { table.setGlobalFilter(query.value); grid.rows.virtualizer.scrollToOffset(0); }
+function sort() { table.getColumn('score')?.toggleSorting(); grid.rows.virtualizer.scrollToOffset(0); }
+function value(row: number, column: number) { return String(model.value[row].getValue(leafColumns.value[column].id)); }
+function toggleRow(index: number) { model.value[index].toggleSelected(); }
+</script>
+<template>
+  <div class="demo-layout"><section class="experiment">
+    <div class="toolbar"><div class="search-field"><Input v-model="query" aria-label="Filter table" placeholder="Search customers…" /><Button size="sm" @click="search">Filter</Button></div><Button size="sm" variant="outline" @click="sort">Sort by score</Button><Button size="sm" variant="outline" @click="grid.scrollToCell(90000, 20, { align: 'start' })">Row 90K · Column 20</Button><span data-testid="selected-count">{{ selected }} selected</span></div>
+    <div ref="scroll" class="viewport table-viewport" data-testid="table-viewport" tabindex="0" @focusout="focusout" role="region" aria-label="Virtualized customers">
+      <div role="table" aria-label="Customers" :aria-rowcount="model.length + 1" :aria-colcount="leafColumns.length" :style="{ width: `${width}px` }">
+        <div role="rowgroup" class="table-sticky-head" :style="{ width: `${width}px` }"><div role="row" aria-rowindex="1"><div v-for="column in columns" :key="String(column.key)" role="columnheader" :aria-colindex="column.index + 1" class="table-header-cell" :style="{ width: `${column.size}px`, transform: `translateX(${column.start}px)` }">{{ leafColumns[column.index].columnDef.header }}</div></div></div>
+        <div role="rowgroup" class="sizer" :style="{ height: `${height}px` }">
+          <div v-for="row in rows" :key="String(row.key)" :ref="grid.rows.measureElement" :data-index="row.index" :data-row-id="model[row.index].id" role="row" :aria-rowindex="row.index + 2" @focusin="focusedRow = model[row.index].id" class="virtual-table-row" :class="{ 'selected-row': model[row.index].getIsSelected() }" :style="{ minHeight: expanded === model[row.index].id ? '112px' : '48px', width: `${width}px`, transform: `translateY(${row.start}px)` }">
+            <div v-for="column in columns" :key="String(column.key)" role="cell" :aria-colindex="column.index + 1" class="virtual-table-cell" :style="{ width: `${column.size}px`, transform: `translateX(${column.start}px)` }">
+              <template v-if="column.index === 0"><input type="checkbox" :aria-label="`Select ${model[row.index].original.name}`" :checked="model[row.index].getIsSelected()" @change="toggleRow(row.index)" /><button class="table-name" @click="expanded = expanded === model[row.index].id ? null : model[row.index].id">{{ value(row.index, column.index) }}</button><p v-if="expanded === model[row.index].id">Stable ID: {{ model[row.index].id }}. This row grows and is measured.</p></template>
+              <template v-else>{{ value(row.index, column.index) }}</template>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><div v-if="!model.length" class="empty-state">No customers match this filter. Clear the search to continue.</div><div class="experiment-footer">VibeTable owns sorting, filtering and selection. VibeVirtual owns the visible window.</div>
+  </section><Metrics :items="rows" :count="model.length" :total="height" :offset="offset" :scrolling="scrolling" :overscan="5" :target="scroll" /></div>
+</template>

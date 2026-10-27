@@ -1,0 +1,38 @@
+{
+  "name": "@usevibejs/table",
+  "version": "0.1.0",
+  "description": "Powerful headless tables for Vibe.js, powered by TanStack Table Core.",
+  "keywords": [
+    "datagrid",
+    "headless",
+    "table",
+    "tanstack",
+    "typescript",
+    "vibejs"
+  ],
+  "license": "MIT",
+  "files": [
+    "lib"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    }
+  },
+  "dependencies": {
+    "@tanstack/store": "0.11.2",
+    "@tanstack/table-core": "9.3.1"
+  },
+  "peerDependencies": {
+    "@usevibejs/ui": "^0.1.0"
+  },
+  "engines": {
+    "node": "^24.15.0 || >=26"
+  },
+  "packageManager": "pnpm@12.14.0",
+  "private": true
+}

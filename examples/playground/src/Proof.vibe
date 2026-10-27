@@ -1,0 +1,25 @@
+<script setup lang="ts">
+import { computed, ref, useTemplateRef } from '@usevibejs/ui';
+import { useVirtualizer } from '@usevibejs/virtual';
+const scroll = useTemplateRef<HTMLDivElement>('scroll');
+const count = ref(100_000);
+const mounted = ref(true);
+const v = useVirtualizer(() => ({ count: count.value, getScrollElement: () => scroll.value, estimateSize: () => 40, overscan: 5 }));
+const items = v.virtualItems;
+const size = v.totalSize;
+const range = computed(() => v.range.value ? `${v.range.value.startIndex}–${v.range.value.endIndex}` : 'empty');
+function jump() { v.virtualizer.scrollToIndex(90_000, { align: 'start' }); }
+</script>
+<template>
+  <main>
+    <h1>VibeVirtual architectural proof</h1>
+    <button @click="jump">Jump to 90,000</button>
+    <button @click="mounted = !mounted">Toggle container</button>
+    <p>{{ count }} logical rows · {{ items.length }} mounted · {{ range }}</p>
+    <div v-if="mounted" ref="scroll" data-testid="viewport" style="height: 400px; overflow: auto; border: 1px solid; overflow-anchor: none;">
+      <div :style="{ height: `${size}px`, position: 'relative' }">
+        <div v-for="item in items" :key="String(item.key)" :data-index="item.index" data-testid="row" :style="{ position: 'absolute', top: 0, left: 0, height: '40px', width: '100%', transform: `translateY(${item.start}px)` }">Row {{ item.index }}</div>
+      </div>
+    </div>
+  </main>
+</template>

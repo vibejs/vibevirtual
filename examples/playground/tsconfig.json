@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2024", "dom", "dom.iterable"],
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+    "composite": true,
+    "emitDeclarationOnly": true,
+    "outDir": "../../.tsbuild/playground",
+    "rootDir": "../..",
+    "types": ["vite/client"],
+    "skipLibCheck": true,
+    "paths": { "@usevibejs/virtual": ["../../src/index.ts"] }
+  },
+  "contentMappers": [{ "package": "@usevibejs/language-tools", "extensions": [".vibe"] }],
+  "include": ["src", "../../src"],
+  "exclude": ["../../src/**/*.test.ts", "../../src/**/*.test-d.ts"]
+}

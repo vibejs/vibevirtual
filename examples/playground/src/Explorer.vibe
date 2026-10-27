@@ -1,0 +1,79 @@
+<script setup lang="ts">
+import { computed, nextTick, ref, shallowRef, useTemplateRef, watch } from '@usevibejs/ui';
+import { defaultRangeExtractor, useVirtualizer } from '@usevibejs/virtual';
+import type { VirtualItem } from '@usevibejs/virtual';
+import Metrics from './Metrics.vibe';
+import RecordRow from './RecordRow.vibe';
+import Button from './components/ui/Button.vibe';
+const { initialCount = 100_000, restored } = defineProps<{ initialCount?: number; restored?: { offset: number; measurements: VirtualItem[] } }>();
+const emit = defineEmits<{ save: [value: { offset: number; measurements: VirtualItem[] }] }>();
+const scroll = useTemplateRef<HTMLDivElement>('scroll');
+const count = ref(initialCount);
+const ids = shallowRef<number[] | null>(null);
+const overscan = ref(6);
+const selected = ref(-1);
+const focused = ref<number | null>(null);
+const unrelated = ref(0);
+const targetIndex = ref(Math.floor(initialCount * 0.9));
+const epoch = ref(0);
+const itemCount = computed(() => ids.value?.length ?? count.value);
+const rowHeight = initialCount >= 1_000_000 ? 16 : 44;
+const sizeOfRow = () => rowHeight;
+const v = useVirtualizer<HTMLDivElement, HTMLDivElement>(() => {
+  const records = ids.value; const generation = epoch.value; const focusedId = focused.value;
+  const pinned = focusedId === null ? null : records ? records.indexOf(focusedId) : focusedId;
+  return {
+    count: itemCount.value, getScrollElement: () => scroll.value, estimateSize: sizeOfRow, overscan: overscan.value,
+    getItemKey: (index: number) => `${generation}:${records?.[index] ?? index}`,
+    initialOffset: restored?.offset ?? 0, initialMeasurementsCache: restored?.measurements ?? [],
+    anchorTo: 'end', followOnAppend: false,
+    rangeExtractor: (range) => pinned === null ? defaultRangeExtractor(range) : [...new Set([...defaultRangeExtractor(range), pinned])].filter((i) => i >= 0 && i < range.count).sort((a, b) => a - b),
+  };
+});
+const items = v.virtualItems;
+const reactiveUpdates = ref(0);
+watch(items, () => { reactiveUpdates.value++; });
+const size = v.totalSize;
+const offset = v.scrollOffset;
+const scrolling = v.isScrolling;
+function idAt(index: number) { return ids.value?.[index] ?? index; }
+function materialize() { return ids.value ?? Array.from({ length: count.value }, (_, i) => i); }
+function prepend() { ids.value = [-100, -99, -98, -97, -96, ...materialize()]; }
+function removeAbove() { ids.value = materialize().slice(5); }
+function reverse() { ids.value = materialize().toReversed(); }
+function filter() { focused.value = null; ids.value = materialize().filter((id) => id % 2 === 0); v.virtualizer.scrollToOffset(0); }
+function replace() { focused.value = null; epoch.value++; ids.value = null; v.virtualizer.scrollToOffset(0); }
+function jump() { v.virtualizer.scrollToIndex(Number(targetIndex.value), { align: 'start' }); }
+async function navigate(event: KeyboardEvent) {
+  if (event.target !== scroll.value) return;
+  const delta = event.key === 'ArrowDown' ? 1 : event.key === 'ArrowUp' ? -1 : event.key === 'PageDown' ? 10 : event.key === 'PageUp' ? -10 : 0;
+  if (!delta && event.key !== 'Home' && event.key !== 'End') return;
+  event.preventDefault();
+  selected.value = event.key === 'Home' ? 0 : event.key === 'End' ? itemCount.value - 1 : Math.max(0, Math.min(itemCount.value - 1, selected.value + delta));
+  v.virtualizer.scrollToIndex(selected.value, { align: 'auto' });
+  await nextTick();
+}
+function focusout(event: FocusEvent) { if (!scroll.value?.contains(event.relatedTarget as Node | null)) focused.value = null; }
+function save() { emit('save', { offset: offset.value, measurements: v.virtualizer.takeSnapshot() }); }
+</script>
+<template>
+  <div class="demo-layout">
+    <section class="experiment">
+      <div class="toolbar">
+        <div class="toolbar-group"><label>Jump to index <input aria-label="Target index" type="number" v-model="targetIndex" /></label><Button size="sm" @click="jump">Go ↗</Button><Button size="sm" variant="outline" @click="v.virtualizer.scrollToOffset(0)">Start</Button><Button size="sm" variant="outline" @click="v.virtualizer.scrollToEnd()">End</Button></div>
+        <label class="overscan-control">Overscan <input aria-label="Overscan" type="range" min="0" max="20" :value="overscan" @input="overscan = Number(($event.target as HTMLInputElement).value)" /><span>{{ overscan }}</span></label>
+      </div>
+      <div class="dataset-actions"><button @click="prepend">Prepend 5</button><button @click="removeAbove">Remove first 5</button><button @click="reverse">Reverse</button><button @click="filter">Filter even IDs</button><button @click="replace">Replace dataset</button><button @click="unrelated++">Unrelated update · {{ unrelated }}</button><button @click="save">Save location</button></div>
+      <div class="list-heading"><span>INDEX</span><span>RECORD</span><span>STATE</span><span>REGION</span><span>ACTION</span></div>
+      <div ref="scroll" data-testid="explorer" class="viewport explorer-viewport" :class="{ 'compact-rows': rowHeight === 16 }" tabindex="0" aria-label="Record explorer. Arrow keys navigate; Home and End jump." @keydown="navigate" @focusout="focusout">
+        <div role="list" :aria-label="`${itemCount} records`" class="sizer" :style="{ height: `${size}px` }">
+          <div v-for="item in items" :key="String(item.key)" role="listitem" :aria-posinset="item.index + 1" :aria-setsize="itemCount" :data-index="item.index" :data-id="idAt(item.index)" data-testid="record" class="virtual-record" :style="{ transform: `translateY(${item.start}px)`, height: `${item.size}px` }" @focusin="focused = idAt(item.index)">
+            <RecordRow :id="idAt(item.index)" :index="item.index" :selected="item.index === selected" />
+          </div>
+        </div>
+      </div>
+      <div class="experiment-footer"><span>↑ ↓ Navigate · Home / End Jump · Tab Inspect</span><span>{{ rowHeight }} px fixed rows · stable domain keys</span></div>
+    </section>
+    <Metrics :items="items" :count="itemCount" :total="size" :offset="offset" :scrolling="scrolling" :overscan="overscan" :target="scroll" :updates="reactiveUpdates" />
+  </div>
+</template>

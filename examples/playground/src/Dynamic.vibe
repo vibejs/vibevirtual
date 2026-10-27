@@ -1,0 +1,41 @@
+<script setup lang="ts">
+import { computed, ref, useTemplateRef, watch } from '@usevibejs/ui';
+import { useVirtualizer } from '@usevibejs/virtual';
+import Metrics from './Metrics.vibe';
+import MotionCard from './MotionCard.vibe';
+import Button from './components/ui/Button.vibe';
+const scroll = useTemplateRef<HTMLDivElement>('scroll');
+const expanded = ref(-1);
+const width = ref(100);
+const lanes = ref(1);
+const v = useVirtualizer<HTMLDivElement, HTMLElement>(() => ({ count: 10_000, getScrollElement: () => scroll.value, estimateSize: () => 150, overscan: 3, gap: 12, lanes: lanes.value, laneAssignmentMode: 'measured' }));
+const items = v.virtualItems; const size = v.totalSize; const offset = v.scrollOffset; const scrolling = v.isScrolling;
+const measured = computed(() => { void items.value; return v.virtualizer.itemSizeCache.size; });
+watch(width, () => v.virtualizer.measure(), { flush: 'post' });
+const passages = [
+  'Virtualization gives each viewport a small working set. Every card is measured after it mounts.',
+  'Resize the container to watch text wrap. Core receives ResizeObserver entries and updates offsets, while Vibe preserves the identity of every retained card.',
+  'An estimate is a starting point. Actual content, web fonts, expanding sections and image attachments determine the measured size. Only mounted cards are observed.',
+];
+</script>
+<template>
+  <div class="demo-layout">
+    <section class="experiment">
+      <div class="toolbar"><label>Width <input aria-label="Feed width" type="range" min="45" max="100" :value="width" @input="width = Number(($event.target as HTMLInputElement).value)" /></label><label>Columns <select aria-label="Lane count" :value="lanes" @change="lanes = Number(($event.target as HTMLSelectElement).value)"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label><Button size="sm" variant="outline" @click="v.virtualizer.scrollToIndex(5000, { align: 'start' })">Jump to 5,000</Button></div>
+      <div ref="scroll" class="viewport dynamic-viewport" data-testid="dynamic" tabindex="0" aria-label="Measured activity feed" :style="{ width: `${width}%` }">
+        <div class="sizer" :style="{ height: `${size}px` }">
+          <article v-for="item in items" :key="String(item.key)" :ref="v.measureElement" :data-index="item.index" class="dynamic-card" :style="{ position: 'absolute', top: 0, left: `${item.lane * 100 / lanes}%`, width: `calc(${100 / lanes}% - 12px)`, transform: `translateY(${item.start}px)` }">
+            <MotionCard :index="item.index" :expanded="expanded === item.index">
+              <div class="card-eyebrow">ACTIVITY {{ item.index }} · LANE {{ item.lane + 1 }}</div><h3>{{ ['A smaller working set', 'Content finds its own height', 'Responsive by measurement'][item.index % 3] }}</h3>
+              <p v-for="n in (item.index % 3) + 1" :key="n">{{ passages[(item.index + n) % passages.length] }}</p>
+              <p v-if="expanded === item.index" class="expanded-copy">{{ passages.join(' ') }} {{ passages.join(' ') }}</p>
+              <Button size="sm" variant="outline" :aria-expanded="expanded === item.index" @click="expanded = expanded === item.index ? -1 : item.index">{{ expanded === item.index ? 'Collapse' : 'Expand details' }}</Button>
+            </MotionCard>
+          </article>
+        </div>
+      </div>
+      <div class="experiment-footer">Measured lane assignment can settle as unknown card sizes become available.</div>
+    </section>
+    <Metrics :items="items" :count="10000" :total="size" :offset="offset" :scrolling="scrolling" :overscan="3" :measured="measured" :target="scroll" />
+  </div>
+</template>

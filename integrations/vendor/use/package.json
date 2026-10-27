@@ -1,0 +1,41 @@
+{
+  "name": "@usevibejs/use",
+  "version": "0.1.0",
+  "description": "Essential Composables for Vibe.js",
+  "keywords": [
+    "composables",
+    "reactivity",
+    "typescript",
+    "utilities",
+    "vibejs"
+  ],
+  "homepage": "https://github.com/vibejs/vibeuse#readme",
+  "bugs": {
+    "url": "https://github.com/vibejs/vibeuse/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vibejs/vibeuse.git"
+  },
+  "files": [
+    "lib"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    }
+  },
+  "peerDependencies": {
+    "@usevibejs/ui": "^0.1.0"
+  },
+  "engines": {
+    "node": "^24.15.0 || >=26"
+  },
+  "packageManager": "pnpm@11.18.0",
+  "private": true
+}

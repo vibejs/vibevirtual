@@ -1,0 +1,47 @@
+{
+  "name": "@usevibejs/query",
+  "version": "0.1.0",
+  "description": "VibeQuery \u2014 powerful asynchronous state and data fetching for Vibe.js.",
+  "keywords": [
+    "async",
+    "cache",
+    "query",
+    "tanstack",
+    "typescript",
+    "vibejs"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vibejs/vibequery.git"
+  },
+  "files": [
+    "lib"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    }
+  },
+  "dependencies": {
+    "@tanstack/query-core": "5.104.5"
+  },
+  "peerDependencies": {
+    "@usevibejs/contract": "^0.1.0",
+    "@usevibejs/ui": "^0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@usevibejs/contract": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": "^24.15.0 || >=26"
+  },
+  "packageManager": "pnpm@12.14.0",
+  "private": true
+}

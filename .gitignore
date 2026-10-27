@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+.tsbuild/
+*.tsbuildinfo
+artifacts/
+test-results/
+playwright-report/
+test/.tmp/
+*.tgz
+.DS_Store

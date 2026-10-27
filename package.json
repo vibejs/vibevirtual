@@ -1,0 +1,86 @@
+{
+  "name": "@usevibejs/virtual",
+  "version": "0.1.0",
+  "description": "Render Millions. Mount Only What Matters. Headless virtualization for Vibe.js, powered by TanStack Virtual Core.",
+  "keywords": [
+    "headless",
+    "tanstack",
+    "typescript",
+    "vibejs",
+    "virtual-list",
+    "virtualization"
+  ],
+  "homepage": "https://github.com/vibejs/vibevirtual#readme",
+  "bugs": {
+    "url": "https://github.com/vibejs/vibevirtual/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vibejs/vibevirtual.git"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "THIRD-PARTY-NOTICES.md"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "dev": "vite examples/playground --host 127.0.0.1",
+    "build": "tsdown",
+    "build:site": "vite build examples/playground",
+    "typecheck": "tsc --noEmit && pnpm --dir examples/playground exec tsc -b --runExternalCode",
+    "lint": "oxlint --deny-warnings",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:browser": "pnpm build:site && playwright test",
+    "test:package": "node scripts/package.ts",
+    "bench": "pnpm build:site && node benchmarks/run.ts",
+    "check": "pnpm fmt:check && pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm build && pnpm build:site",
+    "prepack": "pnpm build",
+    "docs:build": "node scripts/docs.ts",
+    "prebuild:site": "pnpm docs:build",
+    "predev": "pnpm docs:build",
+    "pretypecheck": "pnpm docs:build"
+  },
+  "dependencies": {
+    "@tanstack/virtual-core": "catalog:"
+  },
+  "devDependencies": {
+    "@changesets/cli": "catalog:",
+    "@playwright/test": "catalog:",
+    "@types/node": "catalog:",
+    "@usevibejs/compiler": "catalog:",
+    "@usevibejs/ui": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "jsdom": "catalog:",
+    "marked": "catalog:",
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "shiki": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "@usevibejs/ui": "^0.1.0"
+  },
+  "engines": {
+    "node": "^24.15.0 || >=26"
+  },
+  "packageManager": "pnpm@11.18.0"
+}

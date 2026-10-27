@@ -1,0 +1,17 @@
+<script setup lang="ts">
+import { computed, ref } from '@usevibejs/ui';
+import { pages } from './docs.generated.ts';
+import Input from './components/ui/Input.vibe';
+const query = ref(''); const active = ref('getting-started'); const copied = ref('');
+const visible = computed(() => pages.filter((page) => `${page.title} ${page.search}`.toLowerCase().includes(query.value.toLowerCase())));
+const current = computed(() => pages.find((page) => page.id === active.value) ?? pages[0]);
+async function copy(event: MouseEvent) {
+  const target = event.target;
+  if (!(target instanceof HTMLElement) || !target.closest('[data-copy-code]')) return;
+  const code = target.closest('.code-sample')?.querySelector('code')?.textContent;
+  if (code) { await navigator.clipboard.writeText(code); copied.value = 'Code copied to clipboard.'; }
+}
+</script>
+<template>
+  <div class="docs-layout"><nav class="docs-nav" aria-label="Documentation"><span class="eyebrow">DOCUMENTATION</span><Input v-model="query" aria-label="Search documentation" placeholder="Find a topic…" /><button v-for="page in visible" :key="page.id" :class="{ active: active === page.id }" @click="active = page.id">{{ page.title }}</button><p v-if="!visible.length" class="muted">No topics match this search.</p><a href="?demo=explorer">Try the live examples ↗</a></nav><article class="docs-article" @click="copy"><div v-html="current.html"></div><p class="sr-only" role="status">{{ copied }}</p></article></div>
+</template>

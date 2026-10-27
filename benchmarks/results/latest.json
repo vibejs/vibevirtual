@@ -1,0 +1,497 @@
+{
+  "recordedAt": "2026-10-26T21:01:15.385Z",
+  "environment": {
+    "platform": "darwin",
+    "release": "25.6.0",
+    "cpu": "Apple M4",
+    "logicalCpus": 10,
+    "memoryBytes": 25769803776,
+    "node": "v24.22.1",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  "methodology": "One cold page per engine/count, production workbench, no generated source objects. Mount includes navigation, fonts and first range. Five UI-driven distant jumps. 89 rAF intervals during incremental scroll. Heap is Chromium Runtime.getHeapUsage without forced GC, including the entire page. Long tasks are Chromium-only where supported. DOM and observers are actual. One run per cell; no universal timing guarantee.",
+  "rows": [
+    {
+      "engine": "chromium",
+      "browserVersion": "156.0.8078.4",
+      "count": 1000,
+      "rowHeight": 44,
+      "mountMs": 112.76766699999996,
+      "initialDom": {
+        "mounted": 18,
+        "elements": 281
+      },
+      "jumpLatenciesMs": [
+        83.517875, 58.54866699999991, 49.76850000000002, 45.23595799999998, 48.490542000000005
+      ],
+      "frameIntervalP50Ms": 16.699999999999818,
+      "frameIntervalP95Ms": 16.799999999999955,
+      "framesOver25ms": 0,
+      "sampledFrames": 89,
+      "longTasksMs": [55],
+      "heapUsedBytes": 7870100,
+      "resources": {
+        "resizeTargets": 1,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 1,
+        "detachedScrollListeners": 0
+      },
+      "afterUnmount": {
+        "resizeTargets": 0,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 0,
+        "detachedScrollListeners": 0
+      },
+      "endReachable": true,
+      "final": {
+        "scrollHeight": 44000,
+        "clientHeight": 528,
+        "scrollTop": 43472,
+        "mounted": 18
+      }
+    },
+    {
+      "engine": "chromium",
+      "browserVersion": "156.0.8078.4",
+      "count": 10000,
+      "rowHeight": 44,
+      "mountMs": 87.75891600000023,
+      "initialDom": {
+        "mounted": 18,
+        "elements": 281
+      },
+      "jumpLatenciesMs": [
+        70.81358299999965, 47.56050000000005, 49.108374999999796, 48.19508300000007,
+        46.537333999999646
+      ],
+      "frameIntervalP50Ms": 16.699999999999818,
+      "frameIntervalP95Ms": 16.799999999999955,
+      "framesOver25ms": 0,
+      "sampledFrames": 89,
+      "longTasksMs": [],
+      "heapUsedBytes": 8823372,
+      "resources": {
+        "resizeTargets": 1,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 1,
+        "detachedScrollListeners": 0
+      },
+      "afterUnmount": {
+        "resizeTargets": 0,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 0,
+        "detachedScrollListeners": 0
+      },
+      "endReachable": true,
+      "final": {
+        "scrollHeight": 440000,
+        "clientHeight": 528,
+        "scrollTop": 439472,
+        "mounted": 18
+      }
+    },
+    {
+      "engine": "chromium",
+      "browserVersion": "156.0.8078.4",
+      "count": 100000,
+      "rowHeight": 44,
+      "mountMs": 95.5311670000001,
+      "initialDom": {
+        "mounted": 18,
+        "elements": 281
+      },
+      "jumpLatenciesMs": [
+        62.126499999999396, 50.84116699999959, 48.39391599999999, 48.66350000000057,
+        48.20179199999984
+      ],
+      "frameIntervalP50Ms": 16.700000000000045,
+      "frameIntervalP95Ms": 16.700000000000045,
+      "framesOver25ms": 0,
+      "sampledFrames": 89,
+      "longTasksMs": [54],
+      "heapUsedBytes": 11076692,
+      "resources": {
+        "resizeTargets": 1,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 1,
+        "detachedScrollListeners": 0
+      },
+      "afterUnmount": {
+        "resizeTargets": 0,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 0,
+        "detachedScrollListeners": 0
+      },
+      "endReachable": true,
+      "final": {
+        "scrollHeight": 4400000,
+        "clientHeight": 528,
+        "scrollTop": 4399472,
+        "mounted": 18
+      }
+    },
+    {
+      "engine": "chromium",
+      "browserVersion": "156.0.8078.4",
+      "count": 1000000,
+      "rowHeight": 16,
+      "mountMs": 331.056791,
+      "initialDom": {
+        "mounted": 39,
+        "elements": 449
+      },
+      "jumpLatenciesMs": [
+        70.21658300000036, 56.36158299999988, 65.44824999999946, 54.765667000000576,
+        45.954749999999876
+      ],
+      "frameIntervalP50Ms": 16.699999999999818,
+      "frameIntervalP95Ms": 16.799999999999955,
+      "framesOver25ms": 0,
+      "sampledFrames": 89,
+      "longTasksMs": [286],
+      "heapUsedBytes": 34839164,
+      "resources": {
+        "resizeTargets": 1,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 1,
+        "detachedScrollListeners": 0
+      },
+      "afterUnmount": {
+        "resizeTargets": 0,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 0,
+        "detachedScrollListeners": 0
+      },
+      "endReachable": true,
+      "final": {
+        "scrollHeight": 16000000,
+        "clientHeight": 528,
+        "scrollTop": 15999472,
+        "mounted": 39
+      }
+    },
+    {
+      "engine": "firefox",
+      "browserVersion": "157.0",
+      "count": 1000,
+      "rowHeight": 44,
+      "mountMs": 225.84037499999977,
+      "initialDom": {
+        "mounted": 18,
+        "elements": 281
+      },
+      "jumpLatenciesMs": [
+        86.05112499999996, 67.69079200000124, 64.11212499999965, 64.74191600000086,
+        54.61229100000128
+      ],
+      "frameIntervalP50Ms": 16.660000000000082,
+      "frameIntervalP95Ms": 17.299999999999955,
+      "framesOver25ms": 0,
+      "sampledFrames": 89,
+      "longTasksMs": [],
+      "heapUsedBytes": null,
+      "resources": {
+        "resizeTargets": 1,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 1,
+        "detachedScrollListeners": 0
+      },
+      "afterUnmount": {
+        "resizeTargets": 0,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 0,
+        "detachedScrollListeners": 0
+      },
+      "endReachable": true,
+      "final": {
+        "scrollHeight": 44000,
+        "clientHeight": 528,
+        "scrollTop": 43472,
+        "mounted": 18
+      }
+    },
+    {
+      "engine": "firefox",
+      "browserVersion": "157.0",
+      "count": 10000,
+      "rowHeight": 44,
+      "mountMs": 86.09129200000098,
+      "initialDom": {
+        "mounted": 18,
+        "elements": 281
+      },
+      "jumpLatenciesMs": [
+        58.16279199999917, 56.88283300000148, 46.80295800000022, 46.808750000000146,
+        45.982874999999694
+      ],
+      "frameIntervalP50Ms": 16.660000000000082,
+      "frameIntervalP95Ms": 17.6400000000001,
+      "framesOver25ms": 0,
+      "sampledFrames": 89,
+      "longTasksMs": [],
+      "heapUsedBytes": null,
+      "resources": {
+        "resizeTargets": 1,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 1,
+        "detachedScrollListeners": 0
+      },
+      "afterUnmount": {
+        "resizeTargets": 0,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 0,
+        "detachedScrollListeners": 0
+      },
+      "endReachable": true,
+      "final": {
+        "scrollHeight": 440000,
+        "clientHeight": 528,
+        "scrollTop": 439472,
+        "mounted": 18
+      }
+    },
+    {
+      "engine": "firefox",
+      "browserVersion": "157.0",
+      "count": 100000,
+      "rowHeight": 44,
+      "mountMs": 106.19770900000003,
+      "initialDom": {
+        "mounted": 18,
+        "elements": 281
+      },
+      "jumpLatenciesMs": [
+        59.04870800000026, 67.70354200000111, 54.979583000000275, 47.41395899999952,
+        62.73741700000028
+      ],
+      "frameIntervalP50Ms": 16.660000000000082,
+      "frameIntervalP95Ms": 17.639999999999873,
+      "framesOver25ms": 0,
+      "sampledFrames": 89,
+      "longTasksMs": [],
+      "heapUsedBytes": null,
+      "resources": {
+        "resizeTargets": 1,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 1,
+        "detachedScrollListeners": 0
+      },
+      "afterUnmount": {
+        "resizeTargets": 0,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 0,
+        "detachedScrollListeners": 0
+      },
+      "endReachable": true,
+      "final": {
+        "scrollHeight": 4400000,
+        "clientHeight": 528,
+        "scrollTop": 4399472,
+        "mounted": 18
+      }
+    },
+    {
+      "engine": "firefox",
+      "browserVersion": "157.0",
+      "count": 1000000,
+      "rowHeight": 16,
+      "mountMs": 449.81275000000096,
+      "initialDom": {
+        "mounted": 39,
+        "elements": 449
+      },
+      "jumpLatenciesMs": [
+        59.84308299999975, 57.44854199999827, 60.76941599999918, 66.22345800000039,
+        58.94695800000045
+      ],
+      "frameIntervalP50Ms": 16.660000000000082,
+      "frameIntervalP95Ms": 17.460000000000036,
+      "framesOver25ms": 0,
+      "sampledFrames": 89,
+      "longTasksMs": [],
+      "heapUsedBytes": null,
+      "resources": {
+        "resizeTargets": 1,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 1,
+        "detachedScrollListeners": 0
+      },
+      "afterUnmount": {
+        "resizeTargets": 0,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 0,
+        "detachedScrollListeners": 0
+      },
+      "endReachable": true,
+      "final": {
+        "scrollHeight": 16000000,
+        "clientHeight": 528,
+        "scrollTop": 15999472,
+        "mounted": 39
+      }
+    },
+    {
+      "engine": "webkit",
+      "browserVersion": "27.2",
+      "count": 1000,
+      "rowHeight": 44,
+      "mountMs": 140.07562499999767,
+      "initialDom": {
+        "mounted": 18,
+        "elements": 281
+      },
+      "jumpLatenciesMs": [
+        56.917999999997846, 60.47295799999847, 62.685083000000304, 46.23020799999722,
+        47.721417000000656
+      ],
+      "frameIntervalP50Ms": 17,
+      "frameIntervalP95Ms": 18,
+      "framesOver25ms": 0,
+      "sampledFrames": 89,
+      "longTasksMs": [],
+      "heapUsedBytes": null,
+      "resources": {
+        "resizeTargets": 1,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 1,
+        "detachedScrollListeners": 0
+      },
+      "afterUnmount": {
+        "resizeTargets": 0,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 0,
+        "detachedScrollListeners": 0
+      },
+      "endReachable": true,
+      "final": {
+        "scrollHeight": 44000,
+        "clientHeight": 528,
+        "scrollTop": 43472,
+        "mounted": 18
+      }
+    },
+    {
+      "engine": "webkit",
+      "browserVersion": "27.2",
+      "count": 10000,
+      "rowHeight": 44,
+      "mountMs": 86.02016699999876,
+      "initialDom": {
+        "mounted": 18,
+        "elements": 281
+      },
+      "jumpLatenciesMs": [
+        54.550624999999854, 46.38795800000298, 47.919417000000976, 46.82745799999975,
+        45.399750000000495
+      ],
+      "frameIntervalP50Ms": 17,
+      "frameIntervalP95Ms": 18,
+      "framesOver25ms": 0,
+      "sampledFrames": 89,
+      "longTasksMs": [],
+      "heapUsedBytes": null,
+      "resources": {
+        "resizeTargets": 1,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 1,
+        "detachedScrollListeners": 0
+      },
+      "afterUnmount": {
+        "resizeTargets": 0,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 0,
+        "detachedScrollListeners": 0
+      },
+      "endReachable": true,
+      "final": {
+        "scrollHeight": 440000,
+        "clientHeight": 528,
+        "scrollTop": 439472,
+        "mounted": 18
+      }
+    },
+    {
+      "engine": "webkit",
+      "browserVersion": "27.2",
+      "count": 100000,
+      "rowHeight": 44,
+      "mountMs": 92.97733300000255,
+      "initialDom": {
+        "mounted": 18,
+        "elements": 281
+      },
+      "jumpLatenciesMs": [
+        53.17054199999984, 46.03720799999792, 47.62920900000245, 48.16579199999978,
+        47.831333000001905
+      ],
+      "frameIntervalP50Ms": 17,
+      "frameIntervalP95Ms": 18,
+      "framesOver25ms": 0,
+      "sampledFrames": 89,
+      "longTasksMs": [],
+      "heapUsedBytes": null,
+      "resources": {
+        "resizeTargets": 1,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 1,
+        "detachedScrollListeners": 0
+      },
+      "afterUnmount": {
+        "resizeTargets": 0,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 0,
+        "detachedScrollListeners": 0
+      },
+      "endReachable": true,
+      "final": {
+        "scrollHeight": 4400000,
+        "clientHeight": 528,
+        "scrollTop": 4399472,
+        "mounted": 18
+      }
+    },
+    {
+      "engine": "webkit",
+      "browserVersion": "27.2",
+      "count": 1000000,
+      "rowHeight": 16,
+      "mountMs": 198.45329100000163,
+      "initialDom": {
+        "mounted": 39,
+        "elements": 449
+      },
+      "jumpLatenciesMs": [
+        64.48487500000192, 61.83245899999747, 47.03479100000186, 46.05512499999895,
+        46.69837499999994
+      ],
+      "frameIntervalP50Ms": 17,
+      "frameIntervalP95Ms": 18,
+      "framesOver25ms": 0,
+      "sampledFrames": 89,
+      "longTasksMs": [],
+      "heapUsedBytes": null,
+      "resources": {
+        "resizeTargets": 1,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 1,
+        "detachedScrollListeners": 0
+      },
+      "afterUnmount": {
+        "resizeTargets": 0,
+        "detachedResizeTargets": 0,
+        "scrollListeners": 0,
+        "detachedScrollListeners": 0
+      },
+      "endReachable": true,
+      "final": {
+        "scrollHeight": 16000000,
+        "clientHeight": 528,
+        "scrollTop": 15999472,
+        "mounted": 39
+      }
+    }
+  ]
+}

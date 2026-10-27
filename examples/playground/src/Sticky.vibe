@@ -1,0 +1,25 @@
+<script setup lang="ts">
+import { computed, useTemplateRef } from '@usevibejs/ui';
+import { defaultRangeExtractor, useVirtualizer } from '@usevibejs/virtual';
+import Metrics from './Metrics.vibe';
+import Button from './components/ui/Button.vibe';
+const scroll = useTemplateRef<HTMLDivElement>('scroll');
+const v = useVirtualizer<HTMLDivElement, HTMLDivElement>({ count: 2626, getScrollElement: () => scroll.value, estimateSize: () => 40, overscan: 4,
+  rangeExtractor: (range) => [...new Set([Math.floor(range.startIndex / 101) * 101, ...defaultRangeExtractor(range)])].sort((a, b) => a - b),
+  getItemKey: (index) => `directory-${index}`,
+});
+const items = v.virtualItems; const size = v.totalSize; const offset = v.scrollOffset; const scrolling = v.isScrolling;
+const active = computed(() => Math.floor((v.range.value?.startIndex ?? 0) / 101) * 101);
+function group(index: number) { return String.fromCharCode(65 + Math.floor(index / 101)); }
+</script>
+<template>
+  <div class="demo-layout"><section class="experiment"><div class="toolbar"><Button size="sm" variant="outline" @click="v.virtualizer.scrollToIndex(1212, { align: 'start' })">Jump to M</Button><span class="muted">A single sticky heading stays mounted through range extraction.</span></div>
+    <div ref="scroll" class="viewport sticky-viewport" data-testid="sticky" tabindex="0" aria-label="Alphabetical directory">
+      <div role="list" aria-label="Directory" class="sizer" :style="{ height: `${size}px` }">
+        <div v-for="item in items" :key="String(item.key)" role="listitem" :data-index="item.index" :data-active="item.index === active" :class="item.index % 101 === 0 ? 'group-heading' : 'directory-item'" :style="{ position: item.index === active ? 'sticky' : 'absolute', top: 0, width: '100%', height: '40px', zIndex: item.index === active ? 2 : 0, transform: item.index === active ? 'none' : `translateY(${item.start}px)` }">
+          <h3 v-if="item.index % 101 === 0">{{ group(item.index) }} <span>100 entries</span></h3><template v-else><span class="directory-avatar">{{ group(item.index) }}</span>{{ group(item.index) }} — Directory entry {{ item.index % 101 }}</template>
+        </div>
+      </div>
+    </div><div class="experiment-footer">26 groups · no duplicated headings or interactive content</div>
+  </section><Metrics :items="items" :count="2626" :total="size" :offset="offset" :scrolling="scrolling" :overscan="4" :target="scroll" /></div>
+</template>

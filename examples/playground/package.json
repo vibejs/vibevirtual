@@ -1,0 +1,30 @@
+{
+  "name": "vibevirtual-playground",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@fontsource-variable/geist": "catalog:",
+    "@fontsource-variable/geist-mono": "catalog:",
+    "@usevibejs/motion": "workspace:*",
+    "@usevibejs/query": "workspace:*",
+    "@usevibejs/table": "workspace:*",
+    "@usevibejs/ui": "catalog:",
+    "@usevibejs/use": "workspace:*",
+    "@usevibejs/virtual": "workspace:*",
+    "clsx": "catalog:",
+    "marked": "catalog:",
+    "tailwind-merge": "catalog:"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "catalog:",
+    "@usevibejs/compiler": "catalog:",
+    "@usevibejs/language-tools": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:ts-next",
+    "vite": "catalog:"
+  }
+}

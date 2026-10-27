@@ -1,0 +1,64 @@
+<script setup lang="ts">
+import { computed, nextTick, onMounted, onScopeDispose, ref, shallowRef, useTemplateRef, unref } from '@usevibejs/ui';
+import { useVirtualizer } from '@usevibejs/virtual';
+import MessageContent from './MessageContent.vibe';
+import Metrics from './Metrics.vibe';
+import Button from './components/ui/Button.vibe';
+import Badge from './components/ui/Badge.vibe';
+import type { ShallowRef } from '@usevibejs/ui';
+interface Message { id: string; role: 'user' | 'assistant'; text: string | ShallowRef<string>; image?: ShallowRef<boolean> }
+const messages = shallowRef<Message[]>(Array.from({ length: 1500 }, (_, i) => ({ id: `message-${i}`, role: i % 3 === 0 ? 'user' : 'assistant', text: i % 3 === 0 ? `How should I approach task ${i}?` : `### A measured approach\n\nKeep the working set small. Message ${i} has its own stable identity.\n\n\`\`\`ts\nconst rows = virtual.virtualItems\n\`\`\`` })));
+const scroll = useTemplateRef<HTMLDivElement>('scroll');
+const streaming = ref(false); const streamSteps = ref(0);
+let history = 0; let sequence = 0; let timer: ReturnType<typeof setInterval> | undefined;
+const imageTimers = new Set<ReturnType<typeof setTimeout>>();
+const v = useVirtualizer<HTMLDivElement, HTMLElement>(() => {
+  const current = messages.value;
+  return { count: current.length, getScrollElement: () => scroll.value, estimateSize: () => 160, getItemKey: (index: number) => current[index].id, anchorTo: 'end', followOnAppend: true, scrollEndThreshold: 64, overscan: 5 };
+});
+const items = v.virtualItems; const size = v.totalSize; const offset = v.scrollOffset; const scrolling = v.isScrolling; const atEnd = v.isAtEnd;
+const measured = computed(() => { void items.value; return v.virtualizer.itemSizeCache.size; });
+onMounted(() => { void nextTick(() => v.virtualizer.scrollToEnd()); });
+function prepend() {
+  const batch = history++;
+  messages.value = [...Array.from({ length: 20 }, (_, i): Message => ({ id: `history-${batch}-${i}`, role: 'assistant', text: `Older message ${batch}.${i}. Stable keys let Core preserve the message you are reading.` })), ...messages.value];
+}
+function append() { messages.value = [...messages.value, { id: `new-${sequence++}`, role: 'assistant', text: 'New output follows only when you were already near the end.' }]; }
+function stopStream() { if (timer) clearInterval(timer); timer = undefined; streaming.value = false; }
+function stream() {
+  stopStream();
+  const id = `stream-${sequence++}`; streamSteps.value = 0; streaming.value = true;
+  const streamedText = shallowRef('### Streaming a response\n\n');
+  messages.value = [...messages.value, { id, role: 'assistant', text: streamedText }];
+  const chunks = ['A stable component receives incremental text. ', 'Measurements follow the growing message. ', 'Scroll upward at any time to read history.\n\n', '```ts\n', 'const virtual = useVirtualizer(options)\n', 'const items = virtual.virtualItems\n', '```\n\n', ...Array.from({ length: 36 }, (_, i) => `Measured segment ${i + 1}: updates stay inside the mounted conversation.\n\n`)];
+  timer = setInterval(() => {
+    const chunk = chunks[streamSteps.value++];
+    if (chunk === undefined) { stopStream(); return; }
+    streamedText.value += chunk;
+  }, 80);
+}
+function attachment() {
+  const id = `attachment-${sequence++}`; const loaded = shallowRef(false);
+  messages.value = [...messages.value, { id, role: 'assistant', text: 'An attachment reserves no height until it loads.', image: loaded }];
+  const pendingImage = setTimeout(() => { loaded.value = true; imageTimers.delete(pendingImage); }, 300);
+  imageTimers.add(pendingImage);
+}
+function removeLast() { if (messages.value.at(-1)?.id.startsWith('stream-')) stopStream(); messages.value = messages.value.slice(0, -1); }
+function empty() { stopStream(); messages.value = []; }
+onScopeDispose(() => { stopStream(); for (const pendingImage of imageTimers) clearTimeout(pendingImage); imageTimers.clear(); });
+</script>
+<template>
+  <div class="demo-layout"><section class="experiment">
+    <div class="toolbar"><Button size="sm" variant="outline" @click="prepend">Load older 20</Button><Button size="sm" variant="outline" @click="append">New message</Button><Button size="sm" @click="stream" :disabled="streaming">Stream response</Button><Button size="sm" variant="outline" @click="attachment">Load attachment</Button><Button size="sm" variant="ghost" @click="removeLast">Delete last</Button><Button size="sm" variant="ghost" @click="empty">Clear</Button></div>
+    <div ref="scroll" class="viewport chat-viewport" data-testid="chat" tabindex="0" aria-label="Conversation history">
+      <div v-if="!messages.length" class="empty-state">No messages yet. Add a message or start a response.</div>
+      <div role="list" aria-label="Messages" class="sizer" :style="{ height: `${size}px` }">
+        <article v-for="item in items" :key="String(item.key)" :ref="v.measureElement" :data-index="item.index" :data-message-id="messages[item.index].id" role="listitem" :aria-posinset="item.index + 1" :aria-setsize="messages.length" class="chat-message" :class="messages[item.index].role" :style="{ position: 'absolute', top: 0, width: '100%', transform: `translateY(${item.start}px)` }">
+          <div class="message-meta"><span class="message-avatar">{{ messages[item.index].role === 'user' ? 'Y' : 'V' }}</span><b>{{ messages[item.index].role === 'user' ? 'You' : 'Assistant' }}</b><Badge variant="outline">{{ messages[item.index].id }}</Badge></div>
+          <MessageContent :text="unref(messages[item.index].text)" />
+          <img v-if="messages[item.index].image?.value" alt="A geometric attachment" width="480" height="160" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='160'%3E%3Crect width='480' height='160' fill='%231a657a'/%3E%3Ccircle cx='240' cy='80' r='52' fill='%23b4d6df'/%3E%3C/svg%3E" />
+        </article>
+      </div>
+    </div><div class="experiment-footer"><span role="status">{{ streaming ? `Streaming · ${streamSteps} segments` : `${messages.length} messages` }}</span><Button size="sm" variant="outline" data-testid="jump-latest" @click="v.virtualizer.scrollToEnd()">{{ atEnd ? 'At latest' : 'Jump to latest ↓' }}</Button></div>
+  </section><Metrics :items="items" :count="messages.length" :total="size" :offset="offset" :scrolling="scrolling" :overscan="5" :measured="measured" :target="scroll" /></div>
+</template>

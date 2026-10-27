@@ -1,0 +1,50 @@
+<script setup lang="ts">
+import { computed, ref, useTemplateRef, watch } from '@usevibejs/ui';
+import { useInfiniteQuery, useQueryClient } from '@usevibejs/query';
+import { useVirtualizer } from '@usevibejs/virtual';
+import Metrics from './Metrics.vibe';
+import Button from './components/ui/Button.vibe';
+import Skeleton from './components/ui/Skeleton.vibe';
+const scroll = useTemplateRef<HTMLDivElement>('scroll');
+const category = ref('all'); const failNext = ref(false); const attempts = ref(0);
+const client = useQueryClient();
+interface FeedPage { items: { id: string; title: string }[]; next: number | undefined }
+const feed = useInfiniteQuery(() => ({
+  queryKey: ['virtual-feed', category.value], initialPageParam: 0, retry: false,
+  queryFn: async ({ pageParam, signal }: { pageParam: number; signal: AbortSignal }) => {
+    attempts.value++;
+    await new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(resolve, 100);
+      signal.addEventListener('abort', () => { clearTimeout(timer); reject(new Error('Cancelled')); }, { once: true });
+    });
+    if (failNext.value) { failNext.value = false; throw new Error('Simulated page failure. Retry to continue.'); }
+    return { items: Array.from({ length: 50 }, (_, i) => ({ id: `${category.value}-${pageParam + i}`, title: `Result ${pageParam + i}` })), next: pageParam < 450 ? pageParam + 50 : undefined };
+  },
+  getNextPageParam: (last: FeedPage) => last.next,
+}));
+const records = computed(() => feed.data?.pages.flatMap((page) => page.items) ?? []);
+const count = computed(() => records.value.length + (feed.hasNextPage ? 1 : 0));
+const v = useVirtualizer<HTMLDivElement, HTMLDivElement>(() => { const current = records.value; return { count: count.value, getScrollElement: () => scroll.value, estimateSize: () => 64, getItemKey: (i: number) => current[i]?.id ?? `loader-${category.value}`, overscan: 5 }; });
+const items = v.virtualItems; const size = v.totalSize; const offset = v.scrollOffset; const scrolling = v.isScrolling;
+// A page-length token gates automatic loads; a rejected page requires explicit retry.
+let requestedLength = -1;
+watch(() => [items.value.at(-1)?.index ?? -1, records.value.length, feed.hasNextPage, feed.isFetching, feed.isError] as const, ([last, length, more, fetching, error]) => {
+  if (!more || fetching || error || !length || last < length - 6 || requestedLength === length) return;
+  requestedLength = length; void feed.fetchNextPage();
+});
+watch(category, () => { requestedLength = -1; v.virtualizer.scrollToOffset(0); });
+function changeFilter() { category.value = category.value === 'all' ? 'engineering' : 'all'; }
+</script>
+<template>
+  <div class="demo-layout"><section class="experiment"><div class="toolbar"><Button size="sm" @click="changeFilter">Dataset: {{ category }}</Button><Button size="sm" variant="outline" @click="feed.refetch()">Background refetch</Button><Button size="sm" variant="outline" @click="failNext = true">Fail next request</Button><Button size="sm" variant="outline" @click="client.cancelQueries({ queryKey: ['virtual-feed'] })">Cancel requests</Button><span data-testid="requests">{{ attempts }} requests</span></div>
+    <p v-if="feed.isPending" role="status" class="loading-state">Loading the first page…</p>
+    <div v-if="feed.isError" role="alert" class="error-state">{{ feed.error?.message }} <Button size="sm" @click="feed.fetchNextPage()">Retry page</Button></div>
+    <div ref="scroll" class="viewport infinite-viewport" data-testid="infinite" tabindex="0" aria-label="Infinite result feed">
+      <div role="list" class="sizer" :style="{ height: `${size}px` }">
+        <div v-for="item in items" :key="String(item.key)" role="listitem" :data-index="item.index" class="infinite-result" :style="{ position: 'absolute', top: 0, width: '100%', height: '64px', transform: `translateY(${item.start}px)` }">
+          <template v-if="item.index < records.length"><span class="result-icon">↗</span><div><b>{{ records[item.index].title }}</b><p>{{ records[item.index].id }} · Data owned by VibeQuery</p></div></template><template v-else><Skeleton class="h-5 w-48" /><span role="status">{{ feed.isFetchingNextPage ? 'Loading more results…' : 'Scroll or load the next page' }}</span></template>
+        </div>
+      </div>
+    </div><div class="experiment-footer"><span>{{ records.length }} results loaded · {{ feed.hasNextPage ? 'More available' : 'End of results' }}</span><Button size="sm" variant="outline" :disabled="!feed.hasNextPage || feed.isFetching" @click="feed.fetchNextPage()">Load next page</Button></div>
+  </section><Metrics :items="items" :count="count" :total="size" :offset="offset" :scrolling="scrolling" :overscan="5" :target="scroll" /></div>
+</template>

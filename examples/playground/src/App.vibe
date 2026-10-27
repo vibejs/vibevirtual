@@ -1,0 +1,61 @@
+<script setup lang="ts">
+import { computed, onMounted, onScopeDispose, ref, shallowRef, watch } from '@usevibejs/ui';
+import Explorer from './Explorer.vibe';
+import Dynamic from './Dynamic.vibe';
+import Horizontal from './Horizontal.vibe';
+import Grid from './Grid.vibe';
+import Chat from './Chat.vibe';
+import DataTable from './DataTable.vibe';
+import Infinite from './Infinite.vibe';
+import Sticky from './Sticky.vibe';
+import WindowFeed from './WindowFeed.vibe';
+import Restoration from './Restoration.vibe';
+import Proof from './Proof.vibe';
+const docsComponent = shallowRef<typeof import('./Docs.vibe')['default'] | null>(null);
+import Button from './components/ui/Button.vibe';
+const demos = [
+  { id: 'explorer', name: '100K row explorer', glyph: '≡', category: 'Lists', description: 'A small DOM window over a large dataset. Scroll, mutate, and inspect live rendering.' },
+  { id: 'million', name: 'One million items', glyph: '∞', category: 'Lists', description: 'One million logical records, derived from indexes. No million-object application array.' },
+  { id: 'dynamic', name: 'Dynamic & masonry', glyph: '▦', category: 'Layouts', description: 'Cards find their height. Resize, expand, and reconfigure measured lanes.' },
+  { id: 'horizontal', name: 'Horizontal timeline', glyph: '↔', category: 'Layouts', description: 'Measured widths, RTL scrolling, and distant programmatic navigation.' },
+  { id: 'grid', name: 'Two-axis grid', glyph: '⊞', category: 'Layouts', description: '100,000 rows × 1,000 columns. Independent axes, a shared viewport.' },
+  { id: 'table', name: 'Virtualized DataTable', glyph: '▤', category: 'Compositions', description: '100,000 customers. VibeTable sorting, filtering and selection, virtualized on both axes.' },
+  { id: 'infinite', name: 'Infinite results', glyph: '↓', category: 'Compositions', description: 'VibeQuery owns the pages. The viewport decides when another page is useful.' },
+  { id: 'chat', name: 'Chat & AI streaming', glyph: '✳', category: 'Compositions', description: 'Read history while output grows. Native end anchoring respects your position.' },
+  { id: 'sticky', name: 'Sticky directory', glyph: '⌑', category: 'Compositions', description: 'Range extraction keeps the active section heading mounted exactly once.' },
+  { id: 'restoration', name: 'Scroll restoration', glyph: '↩', category: 'Compositions', description: 'Leave a long list and return to its saved offset and measured sizes.' },
+  { id: 'window', name: 'Window feed', glyph: '▣', category: 'Compositions', description: 'Page-level scrolling with the official window observers and measured scroll margins.' },
+];
+const requestedCount = Number(new URLSearchParams(location.search).get('count'));
+const explorerCount = [100, 1000, 10000, 100000, 1000000].includes(requestedCount) ? requestedCount : 100000;
+const page = ref(new URLSearchParams(location.search).get('demo') ?? 'explorer');
+const dark = ref(localStorage.getItem('vibevirtual-theme') === 'dark');
+watch(page, async (value) => { if (value === 'docs' && !docsComponent.value) docsComponent.value = (await import('./Docs.vibe')).default; }, { immediate: true });
+const current = computed(() => demos.find((demo) => demo.id === page.value));
+function navigate(id: string) { page.value = id; history.replaceState(null, '', `?demo=${id}`); window.scrollTo(0, 0); }
+watch(dark, (value) => { document.documentElement.classList.toggle('dark', value); localStorage.setItem('vibevirtual-theme', value ? 'dark' : 'light'); }, { immediate: true });
+function pop() { page.value = new URLSearchParams(location.search).get('demo') ?? 'explorer'; }
+onMounted(() => window.addEventListener('popstate', pop));
+onScopeDispose(() => window.removeEventListener('popstate', pop));
+</script>
+<template>
+  <div v-if="page === 'proof'"><Proof /></div>
+  <div v-else class="app-shell">
+    <header class="topbar"><a href="?demo=explorer" class="brand" @click.prevent="navigate('explorer')"><span class="brand-mark"><i></i><i></i><i></i></span> Vibe<span>Virtual</span></a><div class="topbar-right"><span class="version-label">v0.1.0 · Core 3.19.8</span><Button size="sm" variant="ghost" @click="navigate(page === 'docs' ? 'explorer' : 'docs')">{{ page === 'docs' ? 'Open playground' : 'Documentation' }} ↗</Button><Button size="icon-sm" variant="outline" :aria-label="dark ? 'Switch to light mode' : 'Switch to dark mode'" @click="dark = !dark">{{ dark ? '☀' : '◐' }}</Button></div></header>
+    <aside class="sidebar"><div class="sidebar-intro"><span class="eyebrow">PERFORMANCE WORKBENCH</span><p>Render Millions.<br />Mount Only What Matters.</p></div><nav aria-label="Playground examples"><template v-for="category in ['Lists', 'Layouts', 'Compositions']" :key="category"><h2 class="nav-category">{{ category }}</h2><button v-for="demo in demos.filter((entry) => entry.category === category)" :key="demo.id" :aria-label="demo.name" class="nav-item" :class="{ active: page === demo.id }" :aria-current="page === demo.id ? 'page' : undefined" @click="navigate(demo.id)"><span class="nav-glyph">{{ demo.glyph }}</span>{{ demo.name }}<span v-if="page === demo.id" class="nav-selected">•</span></button></template></nav><div class="sidebar-foot"><span class="status-dot"></span> Native Vibe.js reactivity<p>Headless by design.<br />Powered by TanStack Virtual.</p><a href="https://github.com/vibejs/vibevirtual">Source repository ↗</a></div></aside>
+    <main class="workspace"><template v-if="page === 'docs'"><component v-if="docsComponent" :is="docsComponent" /><p v-else role="status">Loading documentation…</p></template><template v-else><div class="workspace-heading"><div><div class="breadcrumb">Playground <span>/</span> {{ current?.category }}</div><h1>{{ current?.name ?? 'Example not found' }}</h1><p>{{ current?.description }}</p></div><span class="headless-badge">HEADLESS · TYPESCRIPT</span></div>
+      <Explorer v-if="page === 'explorer'" :initial-count="explorerCount" />
+      <Explorer v-else-if="page === 'million'" :initial-count="1000000" />
+      <Dynamic v-else-if="page === 'dynamic'" />
+      <Horizontal v-else-if="page === 'horizontal'" />
+      <Grid v-else-if="page === 'grid'" />
+      <DataTable v-else-if="page === 'table'" />
+      <Infinite v-else-if="page === 'infinite'" />
+      <Chat v-else-if="page === 'chat'" />
+      <Sticky v-else-if="page === 'sticky'" />
+      <Restoration v-else-if="page === 'restoration'" />
+      <WindowFeed v-else-if="page === 'window'" />
+      <div class="workspace-note"><span>↳</span><p>The library supplies the window. Your templates own the DOM, semantics, styles, and data.</p><button @click="navigate('docs')">Read the integration guide →</button></div>
+    </template></main>
+  </div>
+</template>

@@ -1,0 +1,30 @@
+<script setup lang="ts">
+import { computed, ref, useTemplateRef } from '@usevibejs/ui';
+import { useVirtualGrid } from '@usevibejs/virtual';
+import Metrics from './Metrics.vibe';
+import Button from './components/ui/Button.vibe';
+const scroll = useTemplateRef<HTMLDivElement>('scroll');
+const large = ref(false); const wide = ref(false);
+const grid = useVirtualGrid<HTMLDivElement, HTMLDivElement>({
+  getScrollElement: () => scroll.value,
+  rows: () => ({ count: 100_000, estimateSize: (index: number) => large.value && index % 5 === 0 ? 72 : 36, getItemKey: (i: number) => `row-${i}`, overscan: 3 }),
+  columns: () => ({ count: 1000, estimateSize: (index: number) => wide.value && index % 3 === 0 ? 200 : 120, getItemKey: (i: number) => `col-${i}`, overscan: 2 }),
+});
+const rows = grid.rows.virtualItems; const columns = grid.columns.virtualItems;
+const height = grid.rows.totalSize; const width = grid.columns.totalSize;
+const offset = grid.rows.scrollOffset; const scrolling = grid.rows.isScrolling;
+const cells = computed(() => rows.value.length * columns.value.length);
+function resize() { large.value = !large.value; wide.value = !wide.value; grid.rows.virtualizer.measure(); grid.columns.virtualizer.measure(); }
+function key(event: KeyboardEvent) { if (event.target !== scroll.value) return; if (event.key === 'End') { event.preventDefault(); grid.scrollToCell(99999, 999, { align: 'end' }); } if (event.key === 'Home') { event.preventDefault(); grid.scrollToCell(0, 0, { align: 'start' }); } }
+</script>
+<template>
+  <div class="demo-layout"><section class="experiment"><div class="toolbar"><Button size="sm" @click="grid.scrollToCell(50000, 500, { align: 'start' })">Go to cell 50,000 × 500</Button><Button size="sm" variant="outline" @click="resize">Toggle variable dimensions</Button><span class="muted">{{ cells }} mounted cells</span></div>
+    <div ref="scroll" class="viewport grid-viewport" data-testid="grid" tabindex="0" role="region" aria-label="Matrix with 100,000 rows and 1,000 columns. Home and End navigate." @keydown="key">
+      <div role="table" aria-label="Resource matrix" aria-rowcount="100000" aria-colcount="1000" class="sizer" :style="{ height: `${height}px`, width: `${width}px` }">
+        <div v-for="row in rows" :key="String(row.key)" role="row" :aria-rowindex="row.index + 1" :data-row="row.index" class="matrix-row" :style="{ position: 'absolute', top: 0, width: `${width}px`, height: `${row.size}px`, transform: `translateY(${row.start}px)` }">
+          <div v-for="column in columns" :key="String(column.key)" role="cell" :aria-colindex="column.index + 1" :data-column="column.index" class="matrix-cell" :style="{ position: 'absolute', top: 0, height: '100%', width: `${column.size}px`, transform: `translateX(${column.start}px)` }">{{ row.index }} · {{ column.index }}</div>
+        </div>
+      </div>
+    </div><div class="experiment-footer">100 million logical cells. Only the visible rows × columns are constructed.</div>
+  </section><Metrics :items="rows" :count="100000" :total="height" :offset="offset" :scrolling="scrolling" :overscan="3" :target="scroll" /></div>
+</template>

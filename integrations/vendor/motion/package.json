@@ -1,0 +1,45 @@
+{
+  "name": "@usevibejs/motion",
+  "version": "0.1.0",
+  "description": "Beautiful Motion for Vibe.js: animations, springs, gestures, scroll, layout and presence, powered by Motion.",
+  "keywords": [
+    "animation",
+    "gestures",
+    "motion",
+    "spring",
+    "transitions",
+    "vibejs"
+  ],
+  "homepage": "https://github.com/vibejs/vibemotion#readme",
+  "bugs": {
+    "url": "https://github.com/vibejs/vibemotion/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vibejs/vibemotion.git"
+  },
+  "files": [
+    "lib"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    }
+  },
+  "dependencies": {
+    "motion": "14.6.0"
+  },
+  "peerDependencies": {
+    "@usevibejs/ui": "^0.1.0"
+  },
+  "engines": {
+    "node": "^24.15.0 || >=26"
+  },
+  "packageManager": "pnpm@12.14.0",
+  "private": true
+}

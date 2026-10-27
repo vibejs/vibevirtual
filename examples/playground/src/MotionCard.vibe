@@ -1,0 +1,10 @@
+<script setup lang="ts">
+import { useTemplateRef } from '@usevibejs/ui';
+import { useMotion } from '@usevibejs/motion';
+const { index, expanded } = defineProps<{ index: number; expanded: boolean }>();
+defineSlots<{ default?: (props: {}) => unknown }>();
+const inner = useTemplateRef<HTMLDivElement>('inner');
+// The virtual row owns translation. Motion owns only this inner surface's color.
+useMotion(inner, { initial: false, animate: () => ({ opacity: expanded ? 1 : 0.92 }), transition: { duration: 0.16 } });
+</script>
+<template><div ref="inner" class="motion-card" :data-motion-card="index"><slot /></div></template>

@@ -1,0 +1,14 @@
+<script setup lang="ts">
+import { ref } from '@usevibejs/ui';
+const { id, index, selected } = defineProps<{ id: number; index: number; selected: boolean }>();
+const clicks = ref(0);
+</script>
+<template>
+  <div class="record-content" :data-record="id" :data-position="index">
+    <span class="row-index">{{ index.toLocaleString() }}</span>
+    <span class="record-name">Record {{ id }}</span>
+    <span class="record-status" :class="{ selected }">{{ selected ? 'Selected' : id % 7 === 0 ? 'In review' : 'Synced' }}</span>
+    <span class="record-region">{{ ['Amsterdam', 'Istanbul', 'Tokyo', 'New York'][Math.abs(id) % 4] }}</span>
+    <button class="row-action" :aria-label="`Inspect record ${id}`" @click="clicks++">Inspect <span v-if="clicks">{{ clicks }}</span><span v-else>↗</span></button>
+  </div>
+</template>

@@ -1,0 +1,23 @@
+<script setup lang="ts">
+import { computed, nextTick, onMounted, ref, useTemplateRef } from '@usevibejs/ui';
+import { useWindowVirtualizer } from '@usevibejs/virtual';
+import { useResizeObserver } from '@usevibejs/use';
+import Button from './components/ui/Button.vibe';
+const list = useTemplateRef<HTMLDivElement>('list');
+const margin = ref(0);
+function updateMargin() { margin.value = list.value ? list.value.getBoundingClientRect().top + window.scrollY : 0; }
+// This observes the page header, not a Core-observed scroll container/item.
+const heading = useTemplateRef<HTMLDivElement>('heading');
+useResizeObserver(heading, updateMargin);
+onMounted(() => { void nextTick(updateMargin); });
+const v = useWindowVirtualizer<HTMLDivElement>(() => ({ count: 10_000, estimateSize: () => 112, scrollMargin: margin.value, scrollPaddingStart: 80, overscan: 5 }));
+const items = v.virtualItems; const size = v.totalSize; const offset = v.scrollOffset;
+const description = computed(() => `${items.value.length} articles mounted · window offset ${Math.round(offset.value)} px`);
+</script>
+<template>
+  <section class="window-feed"><div ref="heading" class="window-intro"><h2>A feed that scrolls with the page.</h2><p>The document owns scrolling. A measured scroll margin accounts for the content above the list.</p><Button size="sm" @click="v.virtualizer.scrollToIndex(5000, { align: 'start' })">Jump to article 5,000</Button><p data-testid="window-metrics" class="mono">{{ description }}</p></div>
+    <div ref="list" role="list" aria-label="Window articles" class="sizer window-sizer" :style="{ height: `${size}px` }">
+      <article v-for="item in items" :key="String(item.key)" :data-index="item.index" data-testid="window-row" role="listitem" :aria-posinset="item.index + 1" aria-setsize="10000" class="window-article" :style="{ position: 'absolute', top: 0, height: '112px', width: '100%', transform: `translateY(${item.start - margin}px)` }"><span class="card-eyebrow">ARTICLE {{ item.index }}</span><h3>Smaller DOM. More room for your application.</h3><p>Window virtualization uses Core's window observers and native scrolling.</p></article>
+    </div>
+  </section>
+</template>

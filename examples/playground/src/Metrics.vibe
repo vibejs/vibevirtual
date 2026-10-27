@@ -1,0 +1,34 @@
+<script setup lang="ts">
+import { nextTick, ref, watch } from '@usevibejs/ui';
+import { useMutationObserver } from '@usevibejs/use';
+import type { VirtualItem } from '@usevibejs/virtual';
+const { items, count, total, offset, scrolling, overscan, measured = 0, target, updates } = defineProps<{
+  items: readonly VirtualItem[]; count: number; total: number; offset: number; scrolling: boolean; overscan: number; measured?: number; updates?: number; target: HTMLElement | null;
+}>();
+const nodes = ref(0);
+function update() { nodes.value = target?.querySelectorAll('*').length ?? 0; }
+useMutationObserver(() => target, update, { childList: true, subtree: true });
+watch(() => target, () => { void nextTick(update); }, { immediate: true, flush: 'post' });
+</script>
+<template>
+  <aside class="diagnostics" aria-label="Live performance metrics">
+    <div class="panel-heading"><span class="status-dot" :class="{ active: scrolling }"></span> Live diagnostics</div>
+    <div class="mount-metric"><strong data-testid="mounted-count">{{ items.length }}</strong><span>items mounted</span></div>
+    <p class="metric-context">of {{ count.toLocaleString() }} logical items</p>
+    <dl>
+      <div><dt>Rendered indexes</dt><dd data-testid="range">{{ items[0]?.index ?? '—' }} – {{ items.at(-1)?.index ?? '—' }}</dd></div>
+      <div><dt>Overscan</dt><dd>{{ overscan }} / edge</dd></div>
+      <div><dt>Scroll offset</dt><dd data-testid="offset">{{ Math.round(offset).toLocaleString() }} px</dd></div>
+      <div><dt>Estimated extent</dt><dd>{{ Math.round(total).toLocaleString() }} px</dd></div>
+      <div><dt>Measured keys</dt><dd>{{ measured }}</dd></div>
+      <div><dt>Descendant elements</dt><dd data-testid="dom-count">{{ nodes }}</dd></div>
+      <div v-if="updates !== undefined"><dt>Range ref updates</dt><dd data-testid="reactive-updates">{{ updates }}</dd></div>
+      <div><dt>Scroll state</dt><dd>{{ scrolling ? 'Scrolling' : 'Idle' }}</dd></div>
+    </dl>
+    <div class="extent-map" aria-label="Rendered window within dataset">
+      <div class="extent-track"><span :style="{ top: `${count ? (items[0]?.index ?? 0) / count * 100 : 0}%`, height: `${count ? Math.max(1, items.length / count * 100) : 0}%` }"></span></div>
+      <div><b>The viewport is the work.</b><p>This rail locates the rendered window in your dataset. Its marker has a minimum visual size.</p></div>
+    </div>
+    <p class="fine-print">DOM counts are observed. Size and range come from the live Core instance. Coordinate metadata can grow with item count.</p>
+  </aside>
+</template>

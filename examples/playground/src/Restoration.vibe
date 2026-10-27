@@ -1,0 +1,10 @@
+<script setup lang="ts">
+import { ref, shallowRef } from '@usevibejs/ui';
+import type { VirtualItem } from '@usevibejs/virtual';
+import Explorer from './Explorer.vibe';
+import Button from './components/ui/Button.vibe';
+const saved = shallowRef<{ offset: number; measurements: VirtualItem[] }>();
+const away = ref(false);
+function save(value: { offset: number; measurements: VirtualItem[] }) { saved.value = value; away.value = true; }
+</script>
+<template><section><div v-if="away" class="restoration-detail"><span class="card-eyebrow">RECORD DETAILS</span><h2>Your list has unmounted.</h2><p>Offset {{ Math.round(saved?.offset ?? 0).toLocaleString() }} px and {{ saved?.measurements.length ?? 0 }} measured sizes live in this route's state. No list content is stored.</p><Button @click="away = false">Back to saved location</Button></div><template v-else><p class="recipe-note">Scroll, then choose “Save location” to unmount this list. Returning seeds Core with the saved offset and measurements.</p><Explorer :restored="saved" @save="save" /></template></section></template>

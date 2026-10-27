@@ -1,0 +1,23 @@
+<script setup lang="ts">
+import { useTemplateRef } from '@usevibejs/ui';
+import { useVirtualizer } from '@usevibejs/virtual';
+const scroll = useTemplateRef<HTMLDivElement>('scroll');
+const v = useVirtualizer({
+  count: 100_000,
+  getScrollElement: () => scroll.value,
+  estimateSize: () => 40,
+  overscan: 5,
+});
+const items = v.virtualItems;
+const total = v.totalSize;
+</script>
+<template>
+  <div ref="scroll" tabindex="0" aria-label="Records" style="height: 400px; overflow: auto; overflow-anchor: none;">
+    <div role="list" :style="{ height: `${total}px`, position: 'relative' }">
+      <div v-for="item in items" :key="String(item.key)" role="listitem" :aria-posinset="item.index + 1" aria-setsize="100000"
+        :style="{ position: 'absolute', top: 0, left: 0, width: '100%', height: '40px', transform: `translateY(${item.start}px)` }">
+        Row {{ item.index }}
+      </div>
+    </div>
+  </div>
+</template>
