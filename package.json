@@ -54,7 +54,8 @@
     "docs:build": "node scripts/docs.ts",
     "prebuild:site": "pnpm docs:build",
     "predev": "pnpm docs:build",
-    "pretypecheck": "pnpm docs:build"
+    "pretypecheck": "pnpm docs:build",
+    "version-packages": "changeset version && pnpm install --lockfile-only"
   },
   "dependencies": {
     "@tanstack/virtual-core": "catalog:"
